@@ -54,43 +54,54 @@ mergeddata <- mergeddata %>%
 ##################################################################
 ##                         Static Plots                         ##
 ##################################################################
-baseplot <- mergeddata %>%
-  filter(grouping != "High income" & (year == 2002 | year == 2011 | year == 2021)) %>% 
+lmic_data <- mergeddata %>%
+  filter(grouping != "High income")
+
+baseplot <- lmic_data %>%
+  filter(year == 2002 | year == 2011 | year == 2021) %>% 
   ggplot(aes(x = gdp_per_capita_1000s, y = mobilesub_per100, size = popsize, colour = grouping)) +
   geom_point(alpha = 0.4) +
-  labs(title = "Mobile Cellular Subscriptions (per 100 people) in LMIC",x = "GDP per Capita (in Thousands)", y = "Mobile Cellular Subscriptions (per 100 people)", colour = "Income Group") +
+  labs(title = "Mobile Cellular Subscriptions (per 100 people) in LMICs",x = "GDP per Capita (in Thousands)", y = "Mobile Cellular Subscriptions (per 100 people)", colour = "Income Group") +
   scale_size(range = c(2,20), guide = "none") +
   scale_x_continuous(limits = c(0,15)) +
-  scale_y_continuous(limits = c(0,200))
+  scale_y_continuous(limits = c(0,200)) +
+  theme(text = element_text(size = 14),
+        axis.text.x = element_text(margin = margin(t = 0, r = 0, b = 12, l = 0)),
+        axis.text.y = element_text(margin = margin(t = 0, r = 0, b = 0, l = 12)))
 
 baseplot + facet_wrap(vars(year))
 
 #ggsave("dotplot.png", width = 10, height = 7, units = "in")
 
-#################################################################
-##                         (Line) Plot                         ##
-#################################################################
-baseplot_line <- mergeddata %>%
-  filter(grouping != "High income") %>% 
-  ggplot(aes(x = year, y = mobilesub_per100, group = country, colour = grouping)) +
-  geom_line(alpha = 0.4) +
-  labs(title = "Mobile Cellular Subscriptions (per 100 people) in LMIC", x = "Year", y = "Mobile Cellular Subscriptions (per 100 people)", colour = "Income Group") +
-  scale_size(range = c(2,20), guide = "none") +
-  scale_x_continuous(breaks = seq(2002,2021)) +
-  scale_y_continuous(limits = c(0,200))
+comparison_data <- mergeddata %>%
+  filter(year == 2021) %>% 
+  group_by(grouping) %>% 
+  summarise(mean_mobilesub_per100 = mean(mobilesub_per100))
 
-#ggsave("lineplot.png", width = 10, height = 7, units = "in")
+comparison_plot <- comparison_data %>% 
+  ggplot(aes(x = mean_mobilesub_per100, y = fct_reorder(grouping, mean_mobilesub_per100))) +
+  geom_col(width = 0.5, fill = "steelblue") +
+  labs(title = "Average Mobile Cellular Subscriptions (per 100 people) of Each Income Group in 2021", x = "Average Mobile Cellular Subscriptions (per 100 people)", y = "Income Group") +
+  geom_text(aes(label = round(mean_mobilesub_per100, digits = 2)), color = "white", size = 4, hjust = 1.3) +
+  scale_x_continuous(limits = c(0,140)) +
+  theme(text = element_text(size = 15),
+        axis.text.x = element_text(margin = margin(t = 0, r = 0, b = 12, l = 0)),
+        axis.text.y = element_text(margin = margin(t = 0, r = 0, b = 0, l = 12)))
+  
+#ggsave("barplot.png", width = 12, height = 7, units = "in")
 
 #################################################################
 ##                        Animated Plot                        ##
 #################################################################
-baseplot_anim <- mergeddata %>%
-  filter(grouping != "High income") %>% 
+baseplot_anim <- lmic_data %>% 
   ggplot(aes(x = gdp_per_capita_1000s, y = mobilesub_per100, size = popsize, colour = grouping)) +
   geom_point(aes(group = country), alpha = 0.4) +
   scale_size(range = c(2,20), guide = "none") +
   scale_x_continuous(limits = c(0,15)) +
-  scale_y_continuous(limits = c(0,200))
+  scale_y_continuous(limits = c(0,200)) +
+  theme(text = element_text(size = 14),
+        axis.text.x = element_text(margin = margin(t = 0, r = 0, b = 12, l = 0)),
+        axis.text.y = element_text(margin = margin(t = 0, r = 0, b = 0, l = 12)))
 
 animatedplot <- baseplot_anim + 
   transition_time(year) +
