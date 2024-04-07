@@ -9,22 +9,22 @@ library(gganimate)
 ##                        Data Cleaning                        ##
 #################################################################
 #importing data
-gdp <- read.csv("data_gdp.csv") %>% 
+gdp <- read.csv("./data/data_gdp.csv") %>% 
   select(-Series.Name, -Series.Code) %>%
   naniar::replace_with_na_all(condition = ~.x == "..") %>% # to replace .. with NAs
   na.omit()
 
-mobilesub <- read.csv("data_mobilesub.csv") %>% 
+mobilesub <- read.csv("./data/data_mobilesub.csv") %>% 
   select(-Series.Name, -Series.Code)  %>%
   naniar::replace_with_na_all(condition = ~.x == "..") %>% # to replace .. with NAs
   na.omit()
 
-pop <- read.csv("data_pop.csv") %>% 
+pop <- read.csv("./data/data_pop.csv") %>% 
   select(-Series.Name, -Series.Code)  %>%
   naniar::replace_with_na_all(condition = ~.x == "..") %>% # to replace .. with NAs
   na.omit()
 
-income_classification <- readxl::read_excel("class.xlsx") %>% 
+income_classification <- readxl::read_excel("./data/class.xlsx") %>% 
   select(Code, 'Income group')
 
 cleanheader <- c("country", "country_code", "2002":"2021")
@@ -61,7 +61,7 @@ baseplot <- lmic_data %>%
   filter(year == 2002 | year == 2011 | year == 2021) %>% 
   ggplot(aes(x = gdp_per_capita_1000s, y = mobilesub_per100, size = popsize, colour = grouping)) +
   geom_point(alpha = 0.4) +
-  labs(title = "Mobile Cellular Subscriptions (per 100 people) in LMICs",x = "GDP per Capita (in Thousands)", y = "Mobile Cellular Subscriptions (per 100 people)", colour = "Income Group") +
+  labs(x = "GDP per Capita (in Thousands of Dollars)", y = "Mobile Cellular Subscriptions (per 100 people)", colour = "Income Group") +
   scale_size(range = c(2,20), guide = "none") +
   scale_x_continuous(limits = c(0,15)) +
   scale_y_continuous(limits = c(0,200)) +
@@ -71,7 +71,7 @@ baseplot <- lmic_data %>%
 
 baseplot + facet_wrap(vars(year))
 
-#ggsave("dotplot.png", width = 10, height = 7, units = "in")
+#ggsave("./plots/dotplot.png", width = 10, height = 7, units = "in")
 
 comparison_data <- mergeddata %>%
   filter(year == 2021) %>% 
@@ -81,14 +81,14 @@ comparison_data <- mergeddata %>%
 comparison_plot <- comparison_data %>% 
   ggplot(aes(x = mean_mobilesub_per100, y = fct_reorder(grouping, mean_mobilesub_per100))) +
   geom_col(width = 0.5, fill = "steelblue") +
-  labs(title = "Average Mobile Cellular Subscriptions (per 100 people) of Each Income Group in 2021", x = "Average Mobile Cellular Subscriptions (per 100 people)", y = "Income Group") +
+  labs(x = "Average Mobile Cellular Subscriptions (per 100 people)", y = "Income Group") +
   geom_text(aes(label = round(mean_mobilesub_per100, digits = 2)), color = "white", size = 4, hjust = 1.3) +
   scale_x_continuous(limits = c(0,140)) +
   theme(text = element_text(size = 15),
         axis.text.x = element_text(margin = margin(t = 0, r = 0, b = 12, l = 0)),
         axis.text.y = element_text(margin = margin(t = 0, r = 0, b = 0, l = 12)))
   
-#ggsave("barplot.png", width = 12, height = 7, units = "in")
+#ggsave("./plots/barplot.png", width = 12, height = 7, units = "in")
 
 #################################################################
 ##                        Animated Plot                        ##
@@ -105,7 +105,7 @@ baseplot_anim <- lmic_data %>%
 
 animatedplot <- baseplot_anim + 
   transition_time(year) +
-  labs(title = "Mobile Cellular Subscriptions (per 100 people) in LMIC", subtitle = "Year: {frame_time}", x = "GDP per Capita (in Thousands)", y = "Mobile Cellular Subscriptions (per 100 people)", colour = "Income Group")
+  labs(title = "Mobile Cellular Subscriptions (per 100 people) in LMICs", subtitle = "Year: {as.integer(frame_time)}", x = "GDP per Capita (in Thousands of Dollars)", y = "Mobile Cellular Subscriptions (per 100 people)", colour = "Income Group")
 
 animate(animatedplot,
         fps = 30,
@@ -113,4 +113,4 @@ animate(animatedplot,
         start_pause = 10,
         end_pause = 150)
 
-anim_save("draft.gif")
+anim_save("./plots/dotplot_anim.gif")
